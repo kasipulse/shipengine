@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, exc
 from dotenv import load_dotenv
 
 # Load variables from .env
@@ -9,13 +9,13 @@ load_dotenv()
 # Get the DB_URL
 db_url = os.getenv("DB_URL")
 if not db_url:
-    raise ValueError("DB_URL not found in .env file.")
+    raise ValueError("DB_URL not found in .env file. Please check your setup.")
 
+# Create the engine
 engine = create_engine(db_url)
 
-# Updated to look in the /data folder as discussed
+# Define your file mapping relative to the /data folder
 DATA_DIR = 'data'
-
 files_to_import = {
     'vehicle_type.csv': 'vehicle_type',
     'product_category.csv': 'product_category',
@@ -27,32 +27,39 @@ files_to_import = {
 }
 
 def clean_database():
+    """Drops all existing tables to ensure a clean slate."""
     print("--- Cleaning database (dropping existing tables) ---")
-    with engine.connect() as conn:
-        # Order matters for CASCADE: child tables first
-        conn.execute(text("DROP TABLE IF EXISTS compatibility, applications, vehicles, product_category, vehicle_type, seller, application_status CASCADE"))
-        conn.commit()
-    print("Database cleaned.")
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                DROP TABLE IF EXISTS compatibility, applications, vehicles, 
+                product_category, vehicle_type, seller, application_status CASCADE
+            """))
+            conn.commit()
+        print("Database cleaned.")
+    except exc.SQLAlchemyError as e:
+        print(f"Error cleaning database: {e}")
 
 def run_import():
     clean_database()
     
-    # 1. Import base tables first (Parents)
-    # 2. Import dependent tables last (Children)
+    # 1. Import base tables
     for file, table in files_to_import.items():
         file_path = os.path.join(DATA_DIR, file)
         
         if os.path.exists(file_path):
             print(f"--- Importing {file} into table '{table}' ---")
-            df = pd.read_csv(file_path)
-            
-            # Use 'replace' to create tables with correct inferred types
-            df.to_sql(table, engine, if_exists='replace', index=False)
-            print(f"Success: '{table}' populated.")
+            try:
+                df = pd.read_csv(file_path)
+                # Use 'replace' to create tables with correct inferred types
+                df.to_sql(table, engine, if_exists='replace', index=False)
+                print(f"Success: '{table}' populated.")
+            except Exception as e:
+                print(f"Failed to import {file}: {e}")
         else:
             print(f"Warning: File {file_path} not found. Skipping.")
 
-    # Apply constraints after data is loaded
+    # 2. Apply constraints after data is loaded
     add_constraints()
 
 def add_constraints():
@@ -65,10 +72,16 @@ def add_constraints():
             "ALTER TABLE compatibility ADD CONSTRAINT fk_app FOREIGN KEY (app_id) REFERENCES applications(app_id)",
             "ALTER TABLE compatibility ADD CONSTRAINT fk_vehicle FOREIGN KEY (vehicles_id) REFERENCES vehicles(id)"
         ]
+        
         for q in queries:
-            conn.execute(text(q))
+            try:
+                conn.execute(text(q))
+                print(f"Applied: {q[:50]}...")
+            except exc.SQLAlchemyError as e:
+                print(f"Error applying constraint: {e}")
+        
         conn.commit()
-    print("Constraints applied successfully.")
+    print("Migration tasks completed.")
 
 if __name__ == "__main__":
     run_import()
