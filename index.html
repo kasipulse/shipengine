@@ -1,26 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shipgate Engine Importers | Premium Engines & Gearboxes</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipgate Engine Importers | Quality Engines & Gearboxes</title>
+    <style>
+        /* --- CSS Design System --- */
+        :root {
+            --navy: #002366;
+            --orange: #ff4500;
+            --steel: #e2e8f0;
+            --dark: #1e293b;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; color: var(--dark); line-height: 1.6; }
+
+        /* Navigation */
+        .site-header { background: var(--navy); color: var(--white); padding: 1.5rem 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .nav { display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 1.5rem; font-weight: 800; color: var(--white); text-decoration: none; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--white); text-decoration: none; font-weight: 500; }
+        
+        /* Hero Section */
+        .hero { 
+            padding: 120px 20px; 
+            text-align: center; 
+            background: linear-gradient(rgba(0, 35, 102, 0.85), rgba(0, 35, 102, 0.85)), 
+                        url('https://res.cloudinary.com/dwxgkbuln/image/upload/v1782581117/Toyota-Turbo-Engine_jmly6e.jpg');
+            background-size: cover; 
+            background-position: center; 
+            color: var(--white); 
+        }
+        .hero h1 { font-size: 3rem; margin-bottom: 1rem; }
+        .accent { color: var(--orange); }
+        .btn { padding: 15px 30px; background: var(--orange); color: var(--white); text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 20px; }
+
+        /* Services Grid */
+        .services { padding: 80px 20px; background: var(--steel); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card { background: var(--white); padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 4px solid var(--navy); }
+        .card h3 { margin-bottom: 1rem; color: var(--navy); }
+    </style>
 </head>
 <body>
 
     <header class="site-header">
         <div class="container nav">
-            <a href="/" class="brand">Shipgate <span>Engine Importers</span></a>
+            <a href="/" class="brand">Shipgate Engine Importers</a>
             <nav>
                 <ul class="nav-links">
                     <li><a href="#services">Services</a></li>
                     <li><a href="/shop.html">Shop Engines</a></li>
-                    <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
-            <div class="nav-cta">
-                <a href="/shop.html" class="btn btn-primary">Browse Stock</a>
-            </div>
         </div>
     </header>
 
@@ -28,30 +64,30 @@
         <section class="hero">
             <div class="container">
                 <h1>Low-Mileage Engines & Gearboxes,<br><span class="accent">Imported the Right Way.</span></h1>
-                <p>Premium, low-kilometre units from trusted overseas yards. Tested, documented, and delivered.</p>
-                <div class="hero-actions">
-                    <a href="/shop.html" class="btn btn-primary">View Available Engines</a>
-                </div>
+                <p>Premium, low-kilometre units. Tested, documented, and delivered.</p>
+                <a href="/shop.html" class="btn">View Our Current Stock</a>
             </div>
         </section>
 
-        <section id="services" class="services-block">
+        <section id="services" class="services">
             <div class="container">
-                <h2>Our Specialties</h2>
-                <div class="services-grid">
-                    <div class="card"><h3>Engine Sourcing</h3><p>Hand-picked, low-mileage units.</p></div>
-                    <div class="card"><h3>Quality Testing</h3><p>Compression tested & inspected.</p></div>
-                    <div class="card"><h3>Nationwide Delivery</h3><p>Fast, insured dispatch.</p></div>
+                <div class="grid">
+                    <article class="card">
+                        <h3>Engine Sourcing</h3>
+                        <p>We hand-pick low-mileage units from trusted overseas yards.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Quality Testing</h3>
+                        <p>Every unit is compression-tested and documented.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Nationwide Delivery</h3>
+                        <p>Fast, insured dispatch to your door within 48 hours.</p>
+                    </article>
                 </div>
             </div>
         </section>
     </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Shipgate Engine Importers. All rights reserved.</p>
-        </div>
-    </footer>
 
 </body>
 </html>
