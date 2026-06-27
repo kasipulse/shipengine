@@ -1,88 +1,46 @@
-import pandas as pd
+import csv
 import os
 from sqlalchemy import create_engine, text, exc
 from dotenv import load_dotenv
 
-# Load variables from .env
 load_dotenv()
-
-# Get the DB_URL
 db_url = os.getenv("DB_URL")
 if not db_url:
-    raise ValueError("DB_URL not found in .env file. Please check your setup.")
+    raise ValueError("DB_URL not found.")
 
-# Create the engine
-engine = create_engine(db_url)
-
-# Define your file mapping relative to the /data folder
+# Use pg8000 for pure-python connectivity
+engine = create_engine(db_url.replace("postgresql://", "postgresql+pg8000://"))
 DATA_DIR = 'data'
-files_to_import = {
-    'vehicle_type.csv': 'vehicle_type',
-    'product_category.csv': 'product_category',
-    'application_status.csv': 'application_status',
-    'seller.csv': 'seller',
-    'vehicles.csv': 'vehicles',
-    'applications.csv': 'applications',
-    'compatibility.csv': 'compatibility'
-}
 
-def clean_database():
-    """Drops all existing tables to ensure a clean slate."""
-    print("--- Cleaning database (dropping existing tables) ---")
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("""
-                DROP TABLE IF EXISTS compatibility, applications, vehicles, 
-                product_category, vehicle_type, seller, application_status CASCADE
-            """))
-            conn.commit()
-        print("Database cleaned.")
-    except exc.SQLAlchemyError as e:
-        print(f"Error cleaning database: {e}")
+# Files in dependency order
+files_to_import = [
+    ('vehicle_type.csv', 'vehicle_type'),
+    ('product_category.csv', 'product_category'),
+    ('application_status.csv', 'application_status'),
+    ('seller.csv', 'seller'),
+    ('vehicles.csv', 'vehicles'),
+    ('applications.csv', 'applications'),
+    ('compatibility.csv', 'compatibility')
+]
 
 def run_import():
-    clean_database()
-    
-    # 1. Import base tables
-    for file, table in files_to_import.items():
-        file_path = os.path.join(DATA_DIR, file)
-        
-        if os.path.exists(file_path):
-            print(f"--- Importing {file} into table '{table}' ---")
-            try:
-                df = pd.read_csv(file_path)
-                # Use 'replace' to create tables with correct inferred types
-                df.to_sql(table, engine, if_exists='replace', index=False)
-                print(f"Success: '{table}' populated.")
-            except Exception as e:
-                print(f"Failed to import {file}: {e}")
-        else:
-            print(f"Warning: File {file_path} not found. Skipping.")
-
-    # 2. Apply constraints after data is loaded
-    add_constraints()
-
-def add_constraints():
-    print("--- Applying Foreign Key Constraints ---")
     with engine.connect() as conn:
-        queries = [
-            "ALTER TABLE vehicles ADD CONSTRAINT fk_vehicle_type FOREIGN KEY (vehicle_type_id) REFERENCES vehicle_type(id)",
-            "ALTER TABLE applications ADD CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES product_category(id)",
-            "ALTER TABLE applications ADD CONSTRAINT fk_seller FOREIGN KEY (seller_id) REFERENCES seller(id)",
-            "ALTER TABLE compatibility ADD CONSTRAINT fk_app FOREIGN KEY (app_id) REFERENCES applications(app_id)",
-            "ALTER TABLE compatibility ADD CONSTRAINT fk_vehicle FOREIGN KEY (vehicles_id) REFERENCES vehicles(id)"
-        ]
-        
-        for q in queries:
-            try:
-                conn.execute(text(q))
-                print(f"Applied: {q[:50]}...")
-            except exc.SQLAlchemyError as e:
-                print(f"Error applying constraint: {e}")
-        
+        print("--- Cleaning database ---")
+        conn.execute(text("DROP TABLE IF EXISTS compatibility, applications, vehicles, product_category, vehicle_type, seller, application_status CASCADE"))
         conn.commit()
-    print("Migration tasks completed.")
+
+        for file, table in files_to_import:
+            path = os.path.join(DATA_DIR, file)
+            if os.path.exists(path):
+                print(f"--- Importing {file} ---")
+                with open(path, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        cols = ", ".join(row.keys())
+                        vals = ", ".join([f":{k}" for k in row.keys()])
+                        conn.execute(text(f"INSERT INTO {table} ({cols}) VALUES ({vals})"), row)
+                conn.commit()
+    print("Migration successful!")
 
 if __name__ == "__main__":
     run_import()
-    print("All data migration tasks completed.")
