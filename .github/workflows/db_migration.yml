@@ -1,0 +1,22 @@
+name: Database Migration
+on:
+  push:
+    branches:
+      - main
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install sqlalchemy pg8000 python-dotenv
+      - name: Run Migration
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+        run: |
+          python scripts/import_data.py
