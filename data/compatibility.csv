@@ -1,2 +1,3 @@
-id,app_id,vehicles_id
-1,101,1
+app_id,headline,price_usd,category_id,seller_id,item_condition
+101,Toyota Hilux 2.8 GD-6 Engine,45000,1,1,Used
+102,VW Golf 8 DSG Gearbox,22000,2,1,Used
