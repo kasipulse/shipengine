@@ -1,36 +1,20 @@
 import csv
 import os
 from sqlalchemy import create_engine, text, exc
-from dotenv import load_dotenv
 from pathlib import Path
 
-# 1. Setup paths
-script_dir = Path(__file__).resolve().parent
-root_dir = script_dir.parent
-DATA_DIR = root_dir / 'data'
+# --- BYPASSING .env ---
+# Hardcoded connection string
+db_url = "postgresql://postgres:ZuluBravo198@db.fjrzxwxvrxobxfdtxeit.supabase.co:5432/postgres"
 
-# 2. Check for .env in both potential locations
-env_in_scripts = script_dir / '.env'
-env_in_root = root_dir / '.env'
+print("--- Connecting to database directly (Bypassing .env) ---")
 
-if env_in_scripts.exists():
-    dotenv_path = env_in_scripts
-elif env_in_root.exists():
-    dotenv_path = env_in_root
-else:
-    # If neither exists, print a helpful message
-    raise FileNotFoundError(f"Could not find .env in {script_dir} or {root_dir}")
-
-load_dotenv(dotenv_path=dotenv_path)
-db_url = os.getenv("DB_URL")
-
-if not db_url:
-    raise ValueError(f"DB_URL is empty! Please check content of: {dotenv_path}")
-
-print(f"--- Connected using: {dotenv_path} ---")
-
-# 3. Use pg8000 for pure-python connectivity
+# Use pg8000 for pure-python connectivity (no compilation needed)
 engine = create_engine(db_url.replace("postgresql://", "postgresql+pg8000://"))
+
+# Setup paths
+script_dir = Path(__file__).resolve().parent
+DATA_DIR = script_dir.parent / 'data'
 
 files_to_import = [
     ('vehicle_type.csv', 'vehicle_type'),
@@ -65,7 +49,7 @@ def run_import():
             else:
                 print(f"Warning: {path} not found. Skipping.")
 
-        # 4. Apply Foreign Key Constraints
+        # 3. Apply Foreign Key Constraints
         print("--- Applying Foreign Key Constraints ---")
         constraints = [
             "ALTER TABLE vehicles ADD CONSTRAINT fk_vehicle_type FOREIGN KEY (vehicle_type_id) REFERENCES vehicle_type(id)",
