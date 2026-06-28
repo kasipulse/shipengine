@@ -9,18 +9,11 @@
         body { font-family: 'Inter', sans-serif; background: var(--steel); margin: 0; }
         .shop-header { background: var(--navy); color: white; padding: 2rem 0; text-align: center; }
         .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
-        
-        /* Grid */
         .engine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
-        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
-        .product-card img { width: 100%; height: 200px; object-fit: cover; }
+        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
         .card-content { padding: 20px; }
         .price { color: var(--orange); font-weight: bold; font-size: 1.2rem; }
-        .btn { background: var(--orange); color: white; padding: 10px; display: block; text-align: center; text-decoration: none; border-radius: 4px; margin-top: 10px; }
-        
-        /* Search Bar */
-        .search-bar { margin-bottom: 2rem; text-align: center; }
-        .search-bar input { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -31,54 +24,40 @@
     </header>
 
     <div class="container">
-        <div class="search-bar">
-            <input type="text" id="engineSearch" placeholder="Search by model or displacement...">
-        </div>
-
-        <div class="engine-grid" id="engineContainer">
-            <!-- Engines will load here dynamically via JavaScript -->
-        </div>
+        <div class="engine-grid" id="engineContainer"></div>
     </div>
 
-    <!-- Supabase Connection -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-        // Corrected with quotation marks
         const supabase = createClient(
             'https://fjrzxwxvrxobxfdtxeit.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqcnp4d3h2cnhvYnhmZHR4ZWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjgzODMsImV4cCI6MjA5Nzk0NDM4M30.0LbRWawujxTJ1ptn0vW-QSqtZyWQhCTu6bipwFK2FlY'
         )
 
         async function loadInventory() {
-            const { data, error } = await supabase
-                .from('engines')
-                .select('*')
+            const { data, error } = await supabase.from('engines').select('*')
 
-            if (error) {
-                console.error("Fetch error:", error)
-                return
-            }
+            if (error) { console.error("Fetch error:", error); return; }
 
             const container = document.getElementById('engineContainer')
             
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p style="text-align:center;">No engines found in inventory.</p>'
-                return
-            }
-
-            container.innerHTML = data.map(engine => `
-                <div class="product-card">
-                    <img src="${engine.image_url || 'https://via.placeholder.com/300'}" alt="${engine.engine_name}">
-                    <div class="card-content">
-                        <h3>${engine.engine_name}</h3>
-                        <p>Displacement: ${engine.displacement || 'N/A'}</p>
-                        <p>Condition: ${engine.condition || 'N/A'}</p>
-                        <p class="price">R ${engine.price ? engine.price.toLocaleString() : '0'}</p>
-                        <a href="#" class="btn">View Details</a>
+            container.innerHTML = data.map(engine => {
+                // Log the actual object to your browser console to see real column names
+                console.log("Engine Data Object:", engine);
+                
+                // Use Object.values or specific keys if you find them in the console
+                return `
+                    <div class="product-card">
+                        <img src="${engine.image_url || ''}" alt="Engine">
+                        <div class="card-content">
+                            <h3>${engine.engine_name || 'Unnamed Engine'}</h3>
+                            <p>Data found in console.log</p>
+                            <p class="price">R ${engine.price || '0'}</p>
+                        </div>
                     </div>
-                </div>
-            `).join('')
+                `
+            }).join('')
         }
 
         loadInventory()
