@@ -44,7 +44,11 @@
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-        const supabase = createClient(https://fjrzxwxvrxobxfdtxeit.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqcnp4d3h2cnhvYnhmZHR4ZWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjgzODMsImV4cCI6MjA5Nzk0NDM4M30.0LbRWawujxTJ1ptn0vW-QSqtZyWQhCTu6bipwFK2FlY)
+        // Corrected with quotation marks
+        const supabase = createClient(
+            'https://fjrzxwxvrxobxfdtxeit.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqcnp4d3h2cnhvYnhmZHR4ZWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjgzODMsImV4cCI6MjA5Nzk0NDM4M30.0LbRWawujxTJ1ptn0vW-QSqtZyWQhCTu6bipwFK2FlY'
+        )
 
         async function loadInventory() {
             const { data, error } = await supabase
@@ -57,14 +61,20 @@
             }
 
             const container = document.getElementById('engineContainer')
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="text-align:center;">No engines found in inventory.</p>'
+                return
+            }
+
             container.innerHTML = data.map(engine => `
                 <div class="product-card">
-                    <img src="${engine.image_url}" alt="${engine.engine_name}">
+                    <img src="${engine.image_url || 'https://via.placeholder.com/300'}" alt="${engine.engine_name}">
                     <div class="card-content">
                         <h3>${engine.engine_name}</h3>
-                        <p>Displacement: ${engine.displacement}</p>
-                        <p>Condition: ${engine.condition}</p>
-                        <p class="price">R ${engine.price.toLocaleString()}</p>
+                        <p>Displacement: ${engine.displacement || 'N/A'}</p>
+                        <p>Condition: ${engine.condition || 'N/A'}</p>
+                        <p class="price">R ${engine.price ? engine.price.toLocaleString() : '0'}</p>
                         <a href="#" class="btn">View Details</a>
                     </div>
                 </div>
