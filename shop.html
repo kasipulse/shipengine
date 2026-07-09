@@ -46,13 +46,18 @@
                 // Log the actual object to your browser console to see real column names
                 console.log("Engine Data Object:", engine);
                 
+                // Combine manufacturer and model name safely
+                const displayName = engine.manufacturer_name && engine.model_name 
+                    ? `${engine.manufacturer_name} ${engine.model_name}` 
+                    : 'Unnamed Engine';
+
                 // Use Object.values or specific keys if you find them in the console
                 return `
                     <div class="product-card">
                         <img src="${engine.image_url || ''}" alt="Engine">
                         <div class="card-content">
-                            <h3>${engine.engine_name || 'Unnamed Engine'}</h3>
-                            <p>Data found in console.log</p>
+                            <h3>${displayName}</h3>
+                            <p>Vehicle Type ID: ${engine.vehicle_type_id || 'N/A'}</p>
                             <p class="price">R ${engine.price || '0'}</p>
                         </div>
                     </div>
