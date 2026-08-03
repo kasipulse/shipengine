@@ -11,7 +11,7 @@
         .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
         .engine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
         .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .product-card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .product-card img { width: 100%; height: 200px; object-type: cover; background: #eee; }
         .card-content { padding: 20px; }
         .price { color: var(--orange); font-weight: bold; font-size: 1.2rem; }
     </style>
@@ -27,45 +27,42 @@
         <div class="engine-grid" id="engineContainer"></div>
     </div>
 
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-
-        const supabase = createClient(
-            'https://fjrzxwxvrxobxfdtxeit.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqcnp4d3h2cnhvYnhmZHR4ZWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjgzODMsImV4cCI6MjA5Nzk0NDM4M30.0LbRWawujxTJ1ptn0vW-QSqtZyWQhCTu6bipwFK2FlY'
-        )
-
+    <script>
         async function loadInventory() {
-            const { data, error } = await supabase.from('engines').select('*')
-
-            if (error) { console.error("Fetch error:", error); return; }
-
-            const container = document.getElementById('engineContainer')
-            
-            container.innerHTML = data.map(engine => {
-                // Log the actual object to your browser console to see real column names
-                console.log("Engine Data Object:", engine);
+            try {
+                // Fetch directly from your local json file path
+                const response = await fetch('./data/engines.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load engine inventory data.');
+                }
                 
-                // Combine manufacturer and model name safely
-                const displayName = engine.manufacturer_name && engine.model_name 
-                    ? `${engine.manufacturer_name} ${engine.model_name}` 
-                    : 'Unnamed Engine';
+                const data = await response.json();
+                const container = document.getElementById('engineContainer');
+                
+                container.innerHTML = data.map(engine => {
+                    const displayName = engine.manufacturer_name && engine.model_name 
+                        ? `${engine.manufacturer_name} ${engine.model_name}` 
+                        : 'Unnamed Engine';
 
-                // Use Object.values or specific keys if you find them in the console
-                return `
-                    <div class="product-card">
-                        <img src="${engine.image_url || ''}" alt="Engine">
-                        <div class="card-content">
-                            <h3>${displayName}</h3>
-                            <p>Vehicle Type ID: ${engine.vehicle_type_id || 'N/A'}</p>
-                            <p class="price">R ${engine.price || '0'}</p>
+                    return `
+                        <div class="product-card">
+                            <img src="${engine.image_url || ''}" alt="Engine">
+                            <div class="card-content">
+                                <h3>${displayName}</h3>
+                                <p>Vehicle Type ID: ${engine.vehicle_type_id || 'N/A'}</p>
+                                <p class="price">R ${engine.price || '0'}</p>
+                            </div>
                         </div>
-                    </div>
-                `
-            }).join('')
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Error loading inventory:", error);
+                document.getElementById('engineContainer').innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Sorry, we are currently unable to load the inventory.</p>';
+            }
         }
 
-        loadInventory()
+        loadInventory();
     </script>
 </body>
 </html>
