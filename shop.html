@@ -31,7 +31,7 @@
         async function loadInventory() {
             try {
                 // Fetch directly from your local json file path
-                const response = await fetch('./data/engines.json');
+                const response = await fetch('/data/engines.json');
                 if (!response.ok) {
                     throw new Error('Failed to load engine inventory data.');
                 }
