@@ -1,72 +1,37 @@
 import csv
-import os
-from sqlalchemy import create_engine, text, exc
+import json
 from pathlib import Path
 
-# --- BYPASSING .env ---
-# Hardcoded connection string
-db_url = "postgresql://postgres:ZuluBravo198@db.fjrzxwxvrxobxfdtxeit.supabase.co:5432/postgres"
-
-print("--- Connecting to database directly (Bypassing .env) ---")
-
-# Use pg8000 for pure-python connectivity (no compilation needed)
-engine = create_engine(db_url.replace("postgresql://", "postgresql+pg8000://"))
-
-# Setup paths
+# Setup paths based on your repo structure
 script_dir = Path(__file__).resolve().parent
 DATA_DIR = script_dir.parent / 'data'
 
-files_to_import = [
-    ('vehicle_type.csv', 'vehicle_type'),
-    ('product_category.csv', 'product_category'),
-    ('application_status.csv', 'application_status'),
-    ('seller.csv', 'seller'),
-    ('vehicles.csv', 'vehicles'),
-    ('applications.csv', 'applications'),
-    ('compatibility.csv', 'compatibility')
-]
+def generate_json_inventory():
+    print("--- Reading CSV files from data directory ---")
+    
+    # Example: If your main engine inventory lives in 'vehicles.csv' or a combined file
+    vehicles_file = DATA_DIR / 'vehicles.csv'
+    
+    if not vehicles_file.exists():
+        print(f"Error: {vehicles_file} not found.")
+        return
 
-def run_import():
-    with engine.connect() as conn:
-        print("--- Cleaning database ---")
-        # Ensure we drop in order to satisfy CASCADE requirements
-        conn.execute(text("DROP TABLE IF EXISTS compatibility, applications, vehicles, product_category, vehicle_type, seller, application_status CASCADE"))
-        conn.commit()
+    engines_list = []
 
-        for file, table in files_to_import:
-            path = DATA_DIR / file
-            if path.exists():
-                print(f"--- Importing {file} into {table} ---")
-                with open(path, 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        # Clean up row: remove empty strings/keys
-                        row = {k: (None if v == "" else v) for k, v in row.items()}
-                        cols = ", ".join(row.keys())
-                        vals = ", ".join([f":{k}" for k in row.keys()])
-                        conn.execute(text(f"INSERT INTO {table} ({cols}) VALUES ({vals})"), row)
-                conn.commit()
-            else:
-                print(f"Warning: {path} not found. Skipping.")
+    with open(vehicles_file, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Clean up empty strings to None/empty
+            cleaned_row = {k: (v if v != "" else None) for k, v in row.items()}
+            engines_list.append(cleaned_row)
 
-        # 3. Apply Foreign Key Constraints
-        print("--- Applying Foreign Key Constraints ---")
-        constraints = [
-            "ALTER TABLE vehicles ADD CONSTRAINT fk_vehicle_type FOREIGN KEY (vehicle_type_id) REFERENCES vehicle_type(id)",
-            "ALTER TABLE applications ADD CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES product_category(id)",
-            "ALTER TABLE applications ADD CONSTRAINT fk_seller FOREIGN KEY (seller_id) REFERENCES seller(id)",
-            "ALTER TABLE compatibility ADD CONSTRAINT fk_app FOREIGN KEY (app_id) REFERENCES applications(app_id)",
-            "ALTER TABLE compatibility ADD CONSTRAINT fk_vehicle FOREIGN KEY (vehicles_id) REFERENCES vehicles(id)"
-        ]
+    # Output path for your website to read
+    output_json_path = DATA_DIR / 'engines.json'
+    
+    with open(output_json_path, 'w', encoding='utf-8') as json_file:
+        json.dump(engines_list, json_file, indent=4)
         
-        for sql in constraints:
-            try:
-                conn.execute(text(sql))
-            except exc.SQLAlchemyError as e:
-                print(f"Constraint error (Check CSV ID matches): {e}")
-        conn.commit()
-                
-    print("Migration successful! Your database is now fully relational.")
+    print(f"Successfully generated {output_json_path} with {len(engines_list)} items!")
 
 if __name__ == "__main__":
-    run_import()
+    generate_json_inventory()
