@@ -3,8 +3,11 @@ name: Generate Engines Inventory
 on:
   push:
     paths:
-      - 'data/applications.csv' # Runs automatically if you update your CSV file
-  workflow_dispatch: # Allows you to manually trigger it from the GitHub Actions tab
+      - 'data/applications.csv'
+  workflow_dispatch:
+
+permissions:
+  contents: write # Explicitly grants write permissions so git-auto-commit can push
 
 jobs:
   build:
