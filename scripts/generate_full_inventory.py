@@ -2,12 +2,12 @@ import csv
 import json
 from pathlib import Path
 
-# Setup file paths
+# Setup file paths (pointing directly to the root project folder)
 script_dir = Path(__file__).resolve().parent
-DATA_DIR = script_dir.parent / 'data'
+PROJECT_ROOT = script_dir.parent
 
 def build_full_inventory():
-    applications_file = DATA_DIR / 'applications.csv'
+    applications_file = PROJECT_ROOT / 'applications.csv'
     
     if not applications_file.exists():
         print(f"Error: {applications_file} not found.")
@@ -41,7 +41,10 @@ def build_full_inventory():
                 "image_url": "https://res.cloudinary.com/dwxgkbuln/image/upload/v1782581117/Toyota-Turbo-Engine_jmly6e.jpg"
             })
 
-    output_json_path = DATA_DIR / 'engines.json'
+    output_json_path = PROJECT_ROOT / 'data' / 'engines.json'
+    
+    # Ensure data folder exists if it doesn't
+    output_json_path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(output_json_path, 'w', encoding='utf-8') as json_file:
         json.dump(inventory, json_file, indent=4)
