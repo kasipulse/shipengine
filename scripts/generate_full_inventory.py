@@ -2,7 +2,7 @@ import csv
 import json
 from pathlib import Path
 
-# Setup file paths (pointing directly to the root project folder)
+# Setup file paths (pointing to the root project folder)
 script_dir = Path(__file__).resolve().parent
 PROJECT_ROOT = script_dir.parent
 
@@ -43,7 +43,7 @@ def build_full_inventory():
 
     output_json_path = PROJECT_ROOT / 'data' / 'engines.json'
     
-    # Ensure data folder exists if it doesn't
+    # Ensure data folder exists
     output_json_path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(output_json_path, 'w', encoding='utf-8') as json_file:
