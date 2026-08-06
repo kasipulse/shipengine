@@ -1,0 +1,29 @@
+name: Generate Engines Inventory
+
+on:
+  push:
+    paths:
+      - 'data/applications.csv' # Runs automatically if you update your CSV file
+  workflow_dispatch: # Allows you to manually trigger it from the GitHub Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+            python-version: '3.10'
+
+      - name: Run inventory generation script
+        run: python scripts/generate_full_inventory.py
+
+      - name: Auto-commit generated engines.json
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+            file_pattern: data/engines.json
+            commit_message: "Auto-generate engines.json from applications.csv [skip ci]"
